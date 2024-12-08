@@ -11,7 +11,7 @@ documentation_rmd <- paste0(folder_path_default,"/Eunomia/test-doc.Rmd")
 # Define UI using nextGenShinyApps framework
 ui <- fluidPage(
   theme = 2,
-  header = titlePanel(left = "CSV Viewer App", right = "Image logo"),
+  header = titlePanel(left = "CSV Viewer App", right = div(img(src = "logo-foundation.png", height = 50, width = 150))),
   
   sidebarPanel(
     title = "CSV Viewer",
@@ -31,11 +31,10 @@ ui <- fluidPage(
     fluidRow(
       column(
         width = 6,
-        card(
+         card(
+          style = "overflow-y:scroll; max-height: 300px; position:relative; align: left",
           title = "Documentation",
-         # uiOutput('markdown',fill = TRUE)
-         includeMarkdown(documentation_rmd)
-         
+          uiOutput("markdown")
         )
       ),
       column(
@@ -44,13 +43,15 @@ ui <- fluidPage(
           title = "Notes",
           width = 12,
           toolbar = list(collapse = TRUE,
-                         maximize = FALSE, close = FALSE, menu = TRUE),
-          textAreaInput(
+                         maximize = TRUE, close = FALSE, menu = TRUE),
+          nextGenShinyApps::textAreaInput(
             inputId = "comments",
             label = "Enter your comments:",
             value = "",
             width = "100%",
-            height = "100%"
+            height = "100%",
+            resize = "both",
+            style = "round"
           ),
           actionButton(inputId = "save", label = "Save Comments")
         )
@@ -200,8 +201,13 @@ server <- function(input, output, session) {
     ))
   })
   
-  output$markdown <- renderUI({
-    HTML(markdown::markdownToHTML(knit(documentation_rmd, quiet = TRUE)))
+  observeEvent(input$csv_file, {
+    # Update the documentation
+    req(input$csv_file)
+    selected_file <- input$csv_file
+    output$markdown <- renderUI({
+     includeMarkdown(get_description_by_filename(documentation_json, basename(selected_file)))
+    })
   })
 }
 

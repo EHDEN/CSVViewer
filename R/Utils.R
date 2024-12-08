@@ -1,7 +1,5 @@
 
-library(jsonlite)
-
-library(jsonlite)
+library(RJSONIO)
 
 update_json_file <- function(file_path, section, new_item, unique_key) {
   tryCatch({
@@ -48,15 +46,25 @@ update_json_file <- function(file_path, section, new_item, unique_key) {
   })
 }
 
-
-# Example usage
-# Assume the JSON file has a structure like: {"items": []}
-# file_path <- paste0(getwd(),"/R/example.json")
-# section <- "items"
-# new_item <- list(id = 1, name = "New Item", price = 10.99)
-
-#if (update_json_file(file_path, section, new_item)) {
-#  message("JSON file updated successfully.")
-#} else {
-#  message("Failed to update the JSON file.")
-#}
+get_description_by_filename <- function(json_file_path, target_filename) {
+  # Load the JSON data
+  tryCatch({
+    data <- jsonlite::fromJSON(json_file_path, simplifyVector = FALSE)
+    
+    # Iterate through the files in the JSON
+    for (file_info in data$files) {
+      # Split the "name" field into a list of filenames
+      file_names <- unlist(strsplit(file_info$name, ","))
+      
+      # Check if the target filename is in the list
+      if (target_filename %in% file_names) {
+        return(file_info$description)
+      }
+    }
+    
+    # Return NULL if no match is found
+    return("No documentation available for this csv file")
+  }, error = function(e) {
+    return(paste("Error:", e$message))
+  })
+}
