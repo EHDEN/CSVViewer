@@ -4,8 +4,14 @@
 #' @return nothing
 #' @export
 #'
-#' @examples
+
+
 launch <- function(app_port=8888)
 {
-  shiny::runApp(port = app_port, appDir = system.file(package = "RBoilerplateShinyAppPackage"))
+  loadSupport(
+    appDir = system.file(package = "CSVViewer"),
+    renv = new.env(parent = globalenv()),
+    globalrenv = globalenv()
+  )
+  shiny::runApp(port = app_port, appDir = system.file(package = "CSVViewer"))
 }
