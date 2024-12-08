@@ -1,0 +1,11 @@
+Package: CSVViewer
+Title: Shiny App to view csv files
+Version: 0.1
+Authors@R: person("Peter", "Rijnbeek", email = "p.rijnbeek@ehden.eu", role = c("aut", "cre"))
+Description: Shiny App to review csv files
+Depends: R (>= 4.3.2)
+Imports: shiny
+License: APACHE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
