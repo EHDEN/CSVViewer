@@ -1,40 +1,47 @@
 library(nextGenShinyApps)
 library(DT)
-library(RJSONIO)
+library(jsonlite)
 library(rlist)
 library(knitr)
+library(markdown)
 
-folder_path_default <- "/Users/rijnbeek/Documents/Github/ehden/CSVViewer"
-documentation_json <- paste0(folder_path_default,"/Eunomia/documentation.json")
-documentation_rmd <- paste0(folder_path_default,"/Eunomia/test-doc.Rmd")
+source("utils.R")
+
+folder_path_default <- Sys.getenv("CSV_FOLDER")
+if (folder_path_default == "") {
+  folder_path_default <- getwd()
+}
+
 
 # Define UI using nextGenShinyApps framework
 ui <- fluidPage(
   theme = 2,
   header = titlePanel(left = "CSV Viewer App", right = div(img(src = "logo-foundation.png", height = 50, width = 150))),
-  
-  sidebarPanel(
-    title = "CSV Viewer",
-    textInput("folder", "Folder Path:", value = folder_path_default,),
-    checkboxInput("show_only_data", "Skip Empty Files", value = TRUE)  # Add checkbox
-  ), 
+
   mainPanel(
     width = 12,
-    div(
-      style = "margin-bottom: 20px; text-align: left;",
-      selectInput("csv_file", "Select a CSV File:", choices = NULL, width = "50%") # Centered and styled input
-    ),
-    card(
-      title = "Selected File",
-      textOutput("selected_file_name")
-    ),
+    
+    fluidRow(
+      column(width = 8, card(
+      toolbar = list(collapse = TRUE,
+                       maximize = FALSE, close = FALSE, menu = FALSE),
+      selectInput("csv_file", "Select a CSV File:", choices = NULL, width = "100%"),
+      title = "Selected File", textOutput("selected_file_name")
+    )),
+    column(width = 4, card(
+      toolbar = list(collapse = TRUE,
+                     maximize = FALSE, close = FALSE, menu = FALSE),
+      title = "Options",
+      textInput("folder", "Folder Path:", value = folder_path_default,width = "100%"),
+      checkboxInput("show_only_data", "Show only files with data", value = TRUE)
+    ))),
+    
     fluidRow(
       column(
         width = 6,
-         card(
-          style = "overflow-y:scroll; max-height: 300px; position:relative; align: left",
-          title = "Documentation",
-          uiOutput("markdown")
+        card(style = "overflow-y:scroll; max-height: 300px; position:relative; align: left", 
+             title = "Documentation", 
+             uiOutput("markdown")
         )
       ),
       column(
@@ -46,7 +53,7 @@ ui <- fluidPage(
                          maximize = TRUE, close = FALSE, menu = TRUE),
           nextGenShinyApps::textAreaInput(
             inputId = "comments",
-            label = "Enter your comments:",
+            label = "Enter your comments for this file:",
             value = "",
             width = "100%",
             height = "100%",
@@ -77,71 +84,31 @@ server <- function(input, output, session) {
   observeEvent(input$folder, {
     req(input$folder)
     folder_path <- input$folder
-    
     # Check if folder exists
     if (!dir.exists(folder_path)) {
       showNotification("The specified folder does not exist.", type = "error")
       return()
     }
     
-    # List all CSV files in the folder and subfolders
-    all_csv_files <- list.files(
-      path = folder_path, 
-      pattern = "\\.csv$", 
-      recursive = TRUE, 
-      full.names = TRUE
-    )
-    
-        # Filter files by depth (max depth = 5)
-    all_csv_files <- Filter(function(file) {
-      file_depth <- length(strsplit(normalizePath(file), .Platform$file.sep)[[1]])
-      folder_depth <- length(strsplit(normalizePath(folder_path), .Platform$file.sep)[[1]])
-      (file_depth - folder_depth) <= 5
-    }, all_csv_files)
-    
-    if (length(all_csv_files) == 0) {
-      showNotification("No CSV files found in the specified folder.", type = "warning")
-    }
-    
-    # Determine which files have more than just a header
-    valid_files <- lapply(all_csv_files, function(file) {
-      # Attempt to read the file
-      data <- tryCatch(read.csv(file, stringsAsFactors = FALSE), error = function(e) NULL)
+    file_paths_labels <- get_file_paths(folder_path, show_only_data = input$show_only_data, max_depth = 5)
+
+    if (!is.null(file_paths_labels)) {
       
-      # Check if the file has valid data (at least one non-header row)
-      has_data <- !is.null(data) && ncol(data) > 0 && nrow(data) > 0
+      file_paths <- file_paths_labels$file_paths
+      file_labels <- file_paths_labels$file_labels
       
-      # Return the file path and its status
-      list(
-        file = file,
-        has_data = has_data
+      # Update the reactive value
+      csv_files(file_paths)
+      
+      # Update the selectInput with file names only
+      updateSelectInput(
+        session, 
+        "csv_file", 
+        choices = setNames(file_paths, file_labels), # Use filtered file paths and labels
+        selected = if (length(file_paths) > 0) file_paths[1] else NULL
       )
-    })
-    
-    # Filter files based on the checkbox
-    if (input$show_only_data) {
-      filtered_files <- Filter(function(x) x$has_data, valid_files)
-    } else {
-      filtered_files <- valid_files
-    }
-    
-    # Extract file paths and labels
-    file_paths <- sapply(filtered_files, function(x) x$file)
-    file_labels <- sapply(filtered_files, function(x) {
-      formatted_name <-  basename(x$file)
-      if (!x$has_data) paste0(formatted_name, " (header only)") else formatted_name
-    })
-    
-    # Update the reactive value
-    csv_files(file_paths)
-    
-    # Update the selectInput with file names only
-    updateSelectInput(
-      session, 
-      "csv_file", 
-      choices = setNames(file_paths, file_labels), # Use filtered file paths and labels
-      selected = if (length(file_paths) > 0) file_paths[1] else NULL
-    )
+    } 
+
   })
   
   # Display the name of the selected CSV file
@@ -151,11 +118,20 @@ server <- function(input, output, session) {
     # Get two levels of parent folders and the file name
     file_path_parts <- strsplit(normalizePath(selected_file), .Platform$file.sep)[[1]]
     path_length <- length(file_path_parts)
+    # Get file information
+    file_info <- file.info(selected_file)
+    
+    # Extract creation date and size
+    creation_date <- as.Date(file_info$ctime)
+    file_size <- file_info$size   
+    
+    
     if (path_length >= 3) {
-      paste(paste(file_path_parts[(path_length - 2):path_length], collapse = "/"))
+      paste(paste(file_path_parts[(path_length - 2):path_length], collapse = "/"), "creation date:", creation_date, " size:", file_size, "bytes")
     } else {
-      paste(basename(selected_file))
+      paste(basename(selected_file), "creation date:", creation_date, " size:", file_size, "  bytes")
     }
+
   })
   
   # Load and render the selected CSV file
@@ -178,20 +154,36 @@ server <- function(input, output, session) {
     datatable(data, options = list(scrollX = TRUE, searching = TRUE, pageLength = 50))
   })
   
+  # Load the comments from the json if selected file is changed
+  observeEvent(input$csv_file, {
+    req(input$csv_file)
+    selected_file <- input$csv_file
+    comments_json <- paste0(input$folder,"/comments.json")
+    
+    comments <- get_comments_by_filename(comments_json, basename(selected_file))
+    print(comments)
+    if (!is.null(comments)) {
+      updateTextAreaInput(session, "comments", value = comments)
+    } else {
+      showNotification("comments.json file created", type = "message")
+      updateTextAreaInput(session, "comments", value = "")
+    }
+  })
+  
   observeEvent(input$save, {
     # Retrieve the comments
     comments <- input$comments
     
     # Define the file path to save the JSON
-    json_file <- "comments.json"
+    comments_json <- paste0(input$folder,"/comments.json")
     
     new_entry <- list(
-        name = input$csv_file,
+        name = basename(input$csv_file),
         comments = comments,
         updated = format(Sys.time(), "%A, %B %d, %Y %I:%M:%S %p")
     )
     # Write comments to the JSON file
-    update_json_file(json_file, "files", new_entry, "name")
+    update_json_file(comments_json, "files", new_entry, "name")
     
     # Notify the user
     showModal(modalDialog(
@@ -201,13 +193,58 @@ server <- function(input, output, session) {
     ))
   })
   
+  observeEvent(input$show_only_data, {
+    folder_path <- input$folder
+    
+    # Check if folder exists
+    if (!dir.exists(folder_path)) {
+      showNotification("The specified folder does not exist.", type = "error")
+      return()
+    }
+    
+    file_paths_labels <- get_file_paths(
+      folder_path,
+      show_only_data = input$show_only_data,
+      max_depth = 5
+    )
+   
+    if (!is.null(file_paths_labels)) {
+      file_paths <- file_paths_labels$file_paths
+      file_labels <- file_paths_labels$file_labels
+      
+      # Update the reactive value
+      csv_files(file_paths)
+      
+      # Update the selectInput with file names only
+      updateSelectInput(
+        session,
+        "csv_file",
+        choices = setNames(file_paths, file_labels),
+        # Use filtered file paths and labels
+        selected = if (length(file_paths) > 0)
+          file_paths[1]
+        else
+          NULL
+      )
+    }
+  }
+  )
+  
   observeEvent(input$csv_file, {
     # Update the documentation
     req(input$csv_file)
     selected_file <- input$csv_file
-    output$markdown <- renderUI({
-     includeMarkdown(get_description_by_filename(documentation_json, basename(selected_file)))
-    })
+    description <- get_markdown_by_filename(input$folder, selected_file)
+   
+    if (is.null(description)) {
+      output$markdown <- renderUI({
+        includeMarkdown("**No documentation available for this file.**")
+      })
+    } else {
+      output$markdown <- renderUI({
+        includeMarkdown(description)
+      })
+    }
   })
 }
 
