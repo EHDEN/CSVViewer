@@ -1,0 +1,8 @@
+This file contains statistics on the full population for all measurements in a measurement concept list that have a value as number:
+- **measurement_concept_id**: The concept_id in the vocabulary for this measurement
+- **measurement_name**: The name of the measurement as defined in the vocabulary
+- **measurement_unit**: The unit of this measurement for which the statistics are provided
+- **n_records**: The number of records included in the statistics
+- **px_values**: the x percentile of the value. Note that P0 equals the minimum value and P100 equals the maximum value
+
+If a cell contains <n the actual number is too small to share based on governance rules for small cell counts.

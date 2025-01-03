@@ -1,0 +1,10 @@
+This file contains an overview of all the vocabularies that are loaded in your CDM.
+It is used to identify differences between the data sources that may impact a study.
+
+- **vocabulary_id**: A short name of acronym for the vocabulary.
+- **vocabulary_name**: The name of the vocabulary as defined in the vocabulary table.
+- **vocabulary_reference**: If available a link to a website describing the vocabulary.
+- **vocabulary_version**: The version of the vocabulary that is loaded in the CDM.
+- **vocabulary_concept_id**: The concept_id of the vocabulary in the vocabulary table.
+
+

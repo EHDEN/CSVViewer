@@ -1,0 +1,11 @@
+This file contains the number of records and patients in the cohorts that have been defined by concept set list.
+Any concept in this list will trigger the cohort to start
+
+- **cohort_definition_id**: The cohort id from Atlas
+- **cohort_name**: The cohort name
+- **limit**: first means the first occurrence of any concept in the list will trigger the cohort.
+- **prior_observation**: criterium of minimal amount of obsevation time prior to the start. zero means no restriction.
+- **number_records**: The number of records in the cohort. If the cohort is indexing only on the first occurrence then this is identical to the number_subjects.
+- **number_subjects**: The number of patients that are in the cohort"
+
+If a cell contains <n the actual number is too small to share based on governance rules for small cell counts.

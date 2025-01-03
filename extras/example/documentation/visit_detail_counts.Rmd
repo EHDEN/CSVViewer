@@ -1,0 +1,7 @@
+This file contains an overview of the visit detail types in the full population:
+
+- **visit_detail_concept_id**: The concept_id of the visit type in the vocabulary
+- **concept_name**: The name of the concept as defined in the vocabulary
+- **number_records**: The number of records with patients that died with this cause.
+
+If a cell contains <n the actual number is too small to share based on governance rules for small cell counts.

@@ -1,0 +1,8 @@
+measurement_concept_id,measurement_name,value_as_concept_id,measurement_value_name,n_records
+443698,Abnormal anal Papanicolaou smear,4328749,High,<5
+443698,Abnormal anal Papanicolaou smear,4267416,Low,6
+443698,Abnormal anal Papanicolaou smear,4116857,Medium,13
+443709,Atypical squamous cells of undetermined significance on anal Papanicolaou smear,4328749,High,<5
+443709,Atypical squamous cells of undetermined significance on anal Papanicolaou smear,4267416,Low,<5
+443709,Atypical squamous cells of undetermined significance on anal Papanicolaou smear,4116857,Medium,<5
+443715,Atypical squamous cells on anal Papanicolaou smear cannot exclude high grade squamous intraepithelial lesion,4116857,Medium,<5

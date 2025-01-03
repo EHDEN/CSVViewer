@@ -1,0 +1,8 @@
+This file contains statistics on the full population for all measurements in a measurement concept list  that have a value as concept_id, e.g., High, Low:
+- **measurement_concept_id**: The concept_id in the vocabulary for this measurement
+- **measurement_name**: The name of the measurement as defined in the vocabulary
+- **value_as_concept_idt**: The concept_id in the vocabulary of the value for this measurement
+- **measurement_value_name**: The name of the measurement value as defined in the vocabulary
+- **n_records**: The number of records included in the statistics
+
+If a cell contains <n the actual number is too small to share based on governance rules for small cell counts.

@@ -1,0 +1,39 @@
+{
+	"folders" : [
+		{
+			"name" : "/measurements/byConceptID",
+			"markdown_file" : "measurements_by_conceptid.Rmd"	
+		},
+		{
+			"name" : "/measurements/byValue",
+			"markdown_file" : "measurements_by_value.Rmd"	
+		}
+	],
+
+	"files" : [
+		{
+			"name" : "cohort_counts.csv",
+			"markdown_file" : "cohort_counts.Rmd"	
+		},
+		{
+			"name" : "concept_cohort_counts.csv",
+			"markdown_file" : "concept_cohort_counts.Rmd"	
+		},
+		{
+			"name" : "death_cause_counts.csv",
+			"markdown_file" : "death_cause_counts.Rmd"	
+		},
+		{
+			"name" : "visit_counts.csv",
+			"markdown_file" : "visit_counts.Rmd"	
+		},
+				{
+			"name" : "visit_details_counts.csv",
+			"markdown_file" : "visit_details_counts.Rmd"	
+		},
+		{
+			"name" : "vocabulary.csv",
+			"markdown_file" : "vocabulary.Rmd"	
+		}
+	]
+}

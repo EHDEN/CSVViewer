@@ -1,0 +1,6 @@
+measurement_concept_id,measurement_name,measurement_unit,n_records,p0_value,p25_value,p50_value,p75_value,p100_value
+443698,Abnormal anal Papanicolaou smear,liter,16,11.177902016788721,34.934864519163966,66.14043687004596,80.67206365521997,98.32299032714218
+443698,Abnormal anal Papanicolaou smear,milligram,7,11.182251432910562,13.521036016754806,24.742936762049794,69.61163794621825,98.29416663851589
+443709,Atypical squamous cells of undetermined significance on anal Papanicolaou smear,liter,<5,8.865771652199328,8.865771652199328,8.865771652199328,8.865771652199328,8.865771652199328
+443709,Atypical squamous cells of undetermined significance on anal Papanicolaou smear,milligram,<5,20.21607330534607,20.21607330534607,33.73038675636053,63.129496364854276,99.19603476300836
+443715,Atypical squamous cells on anal Papanicolaou smear cannot exclude high grade squamous intraepithelial lesion,liter,<5,39.78034977335483,39.78034977335483,39.78034977335483,76.88955496996641,76.88955496996641

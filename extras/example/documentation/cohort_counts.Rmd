@@ -1,0 +1,8 @@
+This file contains the number of records and patients in full cohorts that have been defined in ATLAS.
+
+- **cohort_definition_id**: The cohort id from Atlas
+- **cohort_name**: The cohort name
+- **number_records**: The number of records in the cohort. If the cohort is indexing only on the first occurrence then this is identical to the number_subjects.
+- **number_subjects**: The number of patients that are in the cohort"
+
+If a cell contains <n the actual number is too small to share based on governance rules for small cell counts.

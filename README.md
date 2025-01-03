@@ -6,7 +6,7 @@ This R Package creates a Shiny App to review all csv files in a folder and all i
 # Features
 
 - Allows to add comments per csv file which are saved in the main folder as json file.
-- A documentation.json is can be provide that can contain instructions per file or folder.
+- A documentation.json can be provided that can contain instructions per file or folder.
 
 # Screenshots
 
@@ -19,6 +19,21 @@ This R Package creates a Shiny App to review all csv files in a folder and all i
 install.packages("remotes")
 remotes::install_github("ehden/CsvViewer")
 ```
+
+## Execution
+
+```
+library(CsvViewer)
+csvViewer::launch(folder = "path/to/folder")
+```
+
+In this folder a comments.json file will be created to store the comments.
+
+All the csv files in this folder and its subfolders will be shown in the app.
+
+if the folder contains a documentation folder and a [documentation.json](https://github.com/EHDEN/CSVViewer/raw/main/extras/example/documentation/documentation.json) the documentation panel will show documentation per file in the app.
+See the [exampe folder](https://github.com/EHDEN/CSVViewer/raw/main/extras/example/) for more details.
+
 
 # Support
 
