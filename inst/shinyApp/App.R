@@ -7,9 +7,11 @@ library(markdown)
 
 source("utils.R")
 
-folder_path_default <- Sys.getenv("CSV_FOLDER")
-if (folder_path_default == "") {
-  folder_path_default <- getwd()
+
+if (exists("csvfolder")){
+    folder_path_default <- csvfolder
+} else {
+    folder_path_default <- getwd()
 }
 
 
@@ -60,6 +62,7 @@ ui <- fluidPage(
             resize = "both",
             style = "round"
           ),
+          textOutput("status"),
           actionButton(inputId = "save", label = "Save Comments")
         )
       )
@@ -80,14 +83,24 @@ server <- function(input, output, session) {
   # Reactive value to store the list of CSV files
   csv_files <- reactiveVal()
   
+  commentsRv <- reactiveValues(changed = FALSE)
+  loading <- reactiveVal(TRUE)
+  
+  output$status <- renderText({
+    if (commentsRv$changed && !loading()) {
+      "Text changed but not saved"
+    } else {
+      "Text is saved or unchanged"
+    }
+  })
+  
   # Update the list of CSV files when the folder path is changed
   observeEvent(input$folder, {
     req(input$folder)
     folder_path <- input$folder
     # Check if folder exists
     if (!dir.exists(folder_path)) {
-      showNotification("The specified folder does not exist.", type = "error")
-      return()
+       return()
     }
     
     file_paths_labels <- get_file_paths(folder_path, show_only_data = input$show_only_data, max_depth = 5)
@@ -131,7 +144,6 @@ server <- function(input, output, session) {
     } else {
       paste(basename(selected_file), "creation date:", creation_date, " size:", file_size, "  bytes")
     }
-
   })
   
   # Load and render the selected CSV file
@@ -161,16 +173,18 @@ server <- function(input, output, session) {
     comments_json <- paste0(input$folder,"/comments.json")
     
     comments <- get_comments_by_filename(comments_json, basename(selected_file))
-    print(comments)
+
     if (!is.null(comments)) {
-      updateTextAreaInput(session, "comments", value = comments)
-    } else {
-      showNotification("comments.json file created", type = "message")
-      updateTextAreaInput(session, "comments", value = "")
-    }
+       loading(TRUE)
+       updateTextAreaInput(session, "comments", value = comments)
+       loading(FALSE)
+    } 
+    commentsRv$changed <- FALSE
   })
   
   observeEvent(input$save, {
+    
+
     # Retrieve the comments
     comments <- input$comments
     
@@ -186,11 +200,7 @@ server <- function(input, output, session) {
     update_json_file(comments_json, "files", new_entry, "name")
     
     # Notify the user
-    showModal(modalDialog(
-      title = "Success",
-      "Your comments have been saved successfully!",
-      easyClose = TRUE
-    ))
+    commentsRv$changed <- FALSE
   })
   
   observeEvent(input$show_only_data, {
@@ -244,6 +254,16 @@ server <- function(input, output, session) {
       output$markdown <- renderUI({
         includeMarkdown(description)
       })
+    }
+  })
+  
+  # Detect comments field is changed
+  observeEvent(input$comments, {
+    print("triggered")
+    if (!loading()) {
+      commentsRv$changed <- TRUE
+    } else {
+      commentsRv$changed <- FALSE
     }
   })
 }

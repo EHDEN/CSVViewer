@@ -53,9 +53,6 @@ get_file_paths <- function(folder_path, show_only_data=TRUE, max_depth=5){
   return(result)
 }
 
-
-
-
 update_json_file <- function(file_path, section, new_item, unique_key) {
   tryCatch({
     # Check if the file exists
@@ -145,12 +142,10 @@ get_markdown_by_filename <- function(resultsfolder, target_filename) {
     
     # Iterate through the folders in the JSON
     subfolder <- gsub(resultsfolder, "", dirname(target_filename))
-    print(subfolder)
     
     for (folder_info in data$folders) {
       # Split the "name" field into a list of folders
       folder_names <- unlist(strsplit(folder_info$name, ","))
-      print(folder_names)
       
       # Check if the target filename is in the list
       if (subfolder %in% folder_names) {
@@ -209,8 +204,6 @@ get_comments_by_filename <- function(json_file_path, target_filename) {
         return(file_info$comments)
       }
     }
-    print(json_file_path)
-    print(target_filename)
     return("")
   }, error = function(e) {
     return(paste("Error:", e$message))

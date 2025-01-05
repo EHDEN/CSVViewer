@@ -10,7 +10,7 @@ This R Package creates a Shiny App to review all csv files in a folder and all i
 
 # Screenshots
 
-<img src="https://github.com/EHDEN/CSVViewer/raw/main/extras/screenshot.png"/>
+<img src="https://github.com/EHDEN/CSVViewer/raw/main/inst/images/screenshot.png"/>
 
 
 ## Installation
@@ -22,17 +22,26 @@ remotes::install_github("ehden/CsvViewer")
 
 ## Execution
 
+To run on an example set of csv files run the following code:
+```
+library(CsvViewer)
+csvViewer::launchdemo()
+```
+These example files are first downloaded to a temporary folder and then the app is launched.
+
+
+To run on a folder with your csv files run the following code:
 ```
 library(CsvViewer)
 csvViewer::launch(folder = "path/to/folder")
 ```
 
-In this folder a comments.json file will be created to store the comments.
+In the folder a comments.json file will be created to store the comments.
 
 All the csv files in this folder and its subfolders will be shown in the app.
 
-if the folder contains a documentation folder and a [documentation.json](https://github.com/EHDEN/CSVViewer/raw/main/extras/example/documentation/documentation.json) the documentation panel will show documentation per file in the app.
-See the [exampe folder](https://github.com/EHDEN/CSVViewer/raw/main/extras/example/) for more details.
+if the folder contains a documentation folder and a [documentation.json](https://github.com/EHDEN/CSVViewer/raw/main/inst/extdata/documentation/documentation.json) the documentation panel will show documentation per file in the app.
+See the [exampe folder](https://github.com/EHDEN/CSVViewer/raw/main/inst/extdata/) for more details.
 
 
 # Support
