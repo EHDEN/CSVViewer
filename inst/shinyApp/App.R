@@ -62,8 +62,7 @@ ui <- fluidPage(
             resize = "both",
             style = "round"
           ),
-          textOutput("status"),
-          actionButton(inputId = "save", label = "Save Comments")
+           actionButton(inputId = "save", label = "Save Comments")
         )
       )
     ),
@@ -75,6 +74,26 @@ ui <- fluidPage(
       style = "margin-top: 20px;",
       DTOutput("data_table")
     )
+    # Add a modal dialog for unsaved changes
+    # tags$div(id = "unsaved_changes_modal", class = "modal fade", tabindex = "-1", role = "dialog",
+    #          div(class = "modal-dialog modal-dialog-centered", role = "document",
+    #              div(class = "modal-content",
+    #                  div(class = "modal-header",
+    #                      h5(class = "modal-title", "Unsaved Changes"),
+    #                      tags$button(type = "button", class = "close", `data-dismiss` = "modal", `aria-label` = "Close",
+    #                             span(`aria-hidden` = "true", "&times;")
+    #                      )
+    #                  ),
+    #                  div(class = "modal-body",
+    #                      p("You have unsaved changes. Do you want to discard them and proceed?")
+    #                  ),
+    #                  div(class = "modal-footer",
+    #                      actionButton(inputId = "confirm_discard", label = "Discard and Proceed"),
+    #                      actionButton(inputId = "cancel_discard", label = "Cancel")
+    #                  )
+    #              )
+    #          )
+    # )
   )
 )
 
@@ -82,17 +101,6 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # Reactive value to store the list of CSV files
   csv_files <- reactiveVal()
-  
-  commentsRv <- reactiveValues(changed = FALSE)
-  loading <- reactiveVal(TRUE)
-  
-  output$status <- renderText({
-    if (commentsRv$changed && !loading()) {
-      "Text changed but not saved"
-    } else {
-      "Text is saved or unchanged"
-    }
-  })
   
   # Update the list of CSV files when the folder path is changed
   observeEvent(input$folder, {
@@ -120,9 +128,51 @@ server <- function(input, output, session) {
         choices = setNames(file_paths, file_labels), # Use filtered file paths and labels
         selected = if (length(file_paths) > 0) file_paths[1] else NULL
       )
+      
+      load_selected_csv_file()
+      loading(FALSE)
+      print(loading())
     } 
 
   })
+  
+  # change the list of CSV files when the show_only_data checkbox is changed
+  observeEvent(input$show_only_data, {
+    folder_path <- input$folder
+    
+    # Check if folder exists
+    if (!dir.exists(folder_path)) {
+      showNotification("The specified folder does not exist.", type = "error")
+      return()
+    }
+    
+    file_paths_labels <- get_file_paths(
+      folder_path,
+      show_only_data = input$show_only_data,
+      max_depth = 5
+    )
+    
+    if (!is.null(file_paths_labels)) {
+      file_paths <- file_paths_labels$file_paths
+      file_labels <- file_paths_labels$file_labels
+      
+      # Update the reactive value
+      csv_files(file_paths)
+      
+      # Update the selectInput with file names only
+      updateSelectInput(
+        session,
+        "csv_file",
+        choices = setNames(file_paths, file_labels),
+        # Use filtered file paths and labels
+        selected = if (length(file_paths) > 0)
+          file_paths[1]
+        else
+          NULL
+      )
+    }
+  }
+  )
   
   # Display the name of the selected CSV file
   output$selected_file_name <- renderText({
@@ -151,7 +201,7 @@ server <- function(input, output, session) {
     req(input$csv_file)
     selected_file <- input$csv_file
     req(length(selected_file) == 1)
-    
+
     # Read the selected CSV file
     data <- tryCatch(
       read.csv(selected_file, stringsAsFactors = FALSE),
@@ -161,30 +211,13 @@ server <- function(input, output, session) {
       }
     )
     req(!is.null(data))
-    
+
     # Render the data table
     datatable(data, options = list(scrollX = TRUE, searching = TRUE, pageLength = 50))
   })
   
-  # Load the comments from the json if selected file is changed
-  observeEvent(input$csv_file, {
-    req(input$csv_file)
-    selected_file <- input$csv_file
-    comments_json <- paste0(input$folder,"/comments.json")
-    
-    comments <- get_comments_by_filename(comments_json, basename(selected_file))
-
-    if (!is.null(comments)) {
-       loading(TRUE)
-       updateTextAreaInput(session, "comments", value = comments)
-       loading(FALSE)
-    } 
-    commentsRv$changed <- FALSE
-  })
-  
+  # Save the comments to the JSON file
   observeEvent(input$save, {
-    
-
     # Retrieve the comments
     comments <- input$comments
     
@@ -192,60 +225,39 @@ server <- function(input, output, session) {
     comments_json <- paste0(input$folder,"/comments.json")
     
     new_entry <- list(
-        name = basename(input$csv_file),
-        comments = comments,
-        updated = format(Sys.time(), "%A, %B %d, %Y %I:%M:%S %p")
+      name = basename(input$csv_file),
+      comments = comments,
+      updated = format(Sys.time(), "%A, %B %d, %Y %I:%M:%S %p")
     )
     # Write comments to the JSON file
     update_json_file(comments_json, "files", new_entry, "name")
     
-    # Notify the user
-    commentsRv$changed <- FALSE
   })
   
-  observeEvent(input$show_only_data, {
-    folder_path <- input$folder
-    
-    # Check if folder exists
-    if (!dir.exists(folder_path)) {
-      showNotification("The specified folder does not exist.", type = "error")
-      return()
-    }
-    
-    file_paths_labels <- get_file_paths(
-      folder_path,
-      show_only_data = input$show_only_data,
-      max_depth = 5
-    )
-   
-    if (!is.null(file_paths_labels)) {
-      file_paths <- file_paths_labels$file_paths
-      file_labels <- file_paths_labels$file_labels
-      
-      # Update the reactive value
-      csv_files(file_paths)
-      
-      # Update the selectInput with file names only
-      updateSelectInput(
-        session,
-        "csv_file",
-        choices = setNames(file_paths, file_labels),
-        # Use filtered file paths and labels
-        selected = if (length(file_paths) > 0)
-          file_paths[1]
-        else
-          NULL
-      )
-    }
-  }
-  )
-  
+  # Check with user if unsaved changes to comments when a new file is selected
   observeEvent(input$csv_file, {
-    # Update the documentation
+    load_selected_csv_file()
+  })
+  
+  # Load the selected CSV file, documentation, and comments
+  load_selected_csv_file <- function() {
+
     req(input$csv_file)
     selected_file <- input$csv_file
+    
+    # update comments
+    comments_json <- paste0(input$folder, "/comments.json")
+    comments <- get_comments_by_filename(comments_json, basename(selected_file))
+    
+    if (!is.null(comments)) {
+      updateTextAreaInput(session, "comments", value = comments)
+    } else {
+      updateTextAreaInput(session, "comments", value = "")
+    }
+    
+    # update documentation
     description <- get_markdown_by_filename(input$folder, selected_file)
-   
+    
     if (is.null(description)) {
       output$markdown <- renderUI({
         includeMarkdown("**No documentation available for this file.**")
@@ -255,17 +267,25 @@ server <- function(input, output, session) {
         includeMarkdown(description)
       })
     }
-  })
-  
-  # Detect comments field is changed
-  observeEvent(input$comments, {
-    print("triggered")
-    if (!loading()) {
-      commentsRv$changed <- TRUE
-    } else {
-      commentsRv$changed <- FALSE
-    }
-  })
+    
+    # Read the selected CSV file
+    output$data_table <- renderDT({
+      req(length(selected_file) == 1)
+      
+      # Read the selected CSV file
+      data <- tryCatch(
+        read.csv(selected_file, stringsAsFactors = FALSE),
+        error = function(e) {
+          showNotification("Failed to read the CSV file.", type = "error")
+          return(NULL)
+        }
+      )
+      req(!is.null(data))
+      
+      # Render the data table
+      datatable(data, options = list(scrollX = TRUE, searching = TRUE, pageLength = 50))
+    })  
+  }
 }
 
 # Run the application using nextGenShinyApps

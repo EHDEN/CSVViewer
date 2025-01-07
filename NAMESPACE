@@ -2,3 +2,9 @@
 
 export(launch)
 export(launch_demo)
+import(DT)
+import(jsonlite)
+import(knitr)
+import(markdown)
+import(nextGenShinyApps)
+import(rlist)
