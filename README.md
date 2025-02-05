@@ -33,7 +33,7 @@ These example files are first downloaded to a temporary folder and then the app 
 To run on a folder with your csv files run the following code:
 ```
 library(CSVViewer)
-CSVViewer::launch(folder = "path/to/folder")
+CSVViewer::launch(csvfolder = "path/to/folder")
 ```
 
 In the folder a comments.json file will be created to store the comments.
