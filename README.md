@@ -24,16 +24,16 @@ remotes::install_github("ehden/CsvViewer")
 
 To run on an example set of csv files run the following code:
 ```
-library(CsvViewer)
-csvViewer::launchdemo()
+library(CSVViewer)
+CSVViewer::launchdemo()
 ```
 These example files are first downloaded to a temporary folder and then the app is launched.
 
 
 To run on a folder with your csv files run the following code:
 ```
-library(CsvViewer)
-csvViewer::launch(folder = "path/to/folder")
+library(CSVViewer)
+CSVViewer::launch(folder = "path/to/folder")
 ```
 
 In the folder a comments.json file will be created to store the comments.
